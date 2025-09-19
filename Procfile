@@ -1,1 +1,1 @@
-web: python3 test_openai.py
+web: /app/.venv/bin/python3 main.py
