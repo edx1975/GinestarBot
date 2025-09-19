@@ -1,185 +1,112 @@
 import os
+import openai
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, ContextTypes, filters
 
 # ----------------------------
-# Variable d'entorn per al token del bot
+# Variables d'entorn
 # ----------------------------
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+
+if not TELEGRAM_TOKEN:
+    print("⚠️ AVÍS: Falta la variable d'entorn TELEGRAM_BOT_TOKEN")
+    exit(0)
+
+if not OPENAI_API_KEY:
+    print("⚠️ AVÍS: Falta la variable d'entorn OPENAI_API_KEY")
+    exit(0)
+
+openai.api_key = OPENAI_API_KEY
 
 # ----------------------------
-# Base de dades interna de preguntes i respostes
+# Base de dades interna (keywords)
 # ----------------------------
 FAQS = {
-    # Informació general
-    "riviere": "El riu que passa per Ginestar és el riu Ebre.",
-    "historia": "Ginestar té una rica història agrícola i cultural, amb vinyes i oliveres centenàries.",
-    "clima": "El clima és mediterrani continental, amb estius calorosos i hiverns frescos.",
-    
-    # Gastronomia
-    "restaurants": "A Ginestar pots trobar restaurants locals amb plats típics com la clotxa i vins de la Ribera d'Ebre.",
-    
-    # Festes
-    "pa amb tomaca": "🎉 Festa del Pa amb Tomaca: Se celebra el 27 de juliol amb tiquets per a ració i taula, al Passeig del Riu.",
-    "festa de l'ermita": "🎉 Diada de l'Ermita de Sant Isidre: Segon diumenge de maig, amb dinar de germanor a l'ermita de Sant Isidre.",
-    
-    # Horaris d'autobús
-    "autobus": "🚌 Horaris d'autobús Ginestar ↔ Móra d'Ebre:\n\n"
-               "🟢 **Ginestar → Móra d'Ebre**:\n"
-               "- Sortides: 08:30, 17:53\n"
-               "- Durada: ~10 minuts\n"
-               "- Preu: 1–2 €\n"
-               "- Operador: ALSA\n"
-               "- Dies: Dilluns a dissabte\n\n"
-               "🔁 **Móra d'Ebre → Ginestar**:\n"
-               "- Sortides: 08:45, 18:02\n"
-               "- Durada: ~10 minuts\n"
-               "- Preu: 1–2 €\n"
-               "- Operador: ALSA\n"
-               "- Dies: Dilluns a dissabte\n\n"
-               "ℹ️ Per més informació, visita: alsa.es",
-    
-    # Fira
-    "fira raure": "✨ XVI Fira Raure de Ginestar\n📅 Diumenge 28 de setembre de 2025: Fira d’arts i oficis amb activitats per a tots els públics.",
-    
-    # Entitats i associacions
-    "entitats": "🏛️ Entitats i Associacions de Ginestar:\n"
-                "- Lo Margalló: Grup de Natura, activitats mediambientals\n"
-                "- Motoceballots: Col·lectiu de motoristes\n"
-                "- GinRiders: Club de MTB\n"
-                "- Lo Corral: Associació Cultural\n"
-                "- La Ginesta: Associació Cultural i Banda de Música\n"
-                "- Lo Local: Espai cultural comunitari\n"
-                "- Associació de Dones: Suport i activitats per a dones\n"
-                "- Lliga contra el Càncer: Activitats de conscienciació\n"
-                "- Cooperativa Agrícola: Fundada 1918\n"
-                "- Sindicat: Bar i restaurant local\n"
-                "- Molí Escoda: Producció d’oli d’oliva\n"
-                "- Molí Sunyer: Històric molí\n"
-                "- Ferreria: Patrimoni industrial\n"
-                "- Refugis Guerra Civil: Patrimoni històric\n"
-                "- Brixa Montserrada Bru (1615): Document històric\n",
-    
-    # Patrimoni i espais culturals
-    "espais culturals": "⛪ Patrimoni i espais culturals:\n"
-                        "- Església parroquial de Sant Martí: Celebracions i activitats religioses\n"
-                        "- Ermita de Sant Isidre: Diada de l'Ermita i altres activitats\n"
-                        "- Església Vella: Activitats culturals, exposicions i esdeveniments comunitaris\n",
-    
-    # Curiositats
-    "kayaks": "🛶 Kayaks al riu Ebre: Activitats d'aventura i rutes en kayak per la zona de Ginestar.",
+    "info": "📍 Ginestar és un municipi de la Ribera d’Ebre, conegut per vinyes, oliveres i paisatges del riu Ebre.",
+    "quevisitar": "🏞️ Llocs per visitar:\n- Església parroquial de Sant Martí\n- Ermita de Sant Isidre\n- Església Vella\n- Passeig pel riu Ebre\n- Vinyes i oliveres\n- Rutes de senderisme i ciclisme",
+    "gastronomia": "🍇 Gastronomia:\n- Vins de la Ribera d’Ebre\n- Oli d’oliva extra verge\n- Plats tradicionals com la clotxa",
+    "festes": "🎉 Festes:\n- Festa Major de Sant Martí (novembre)\n- Festa del Pa amb Tomaca (27 de juliol)\n- Diada de l'Ermita de Sant Isidre (segon diumenge de maig)",
+    "horaris": "🚌 Horaris d'autobús Ginestar ↔ Móra d'Ebre:\n🟢 Ginestar → Móra d'Ebre: 08:30, 17:53\n🔁 Móra d'Ebre → Ginestar: 08:45, 18:02\nOperador: ALSA, Dilluns a dissabte",
+    "fira": "✨ XVI Fira Raure de Ginestar\n📅 Diumenge 28 de setembre de 2025: Fira d’arts i oficis amb activitats per a tots els públics.",
+    "entitats": "🏛️ Entitats i Associacions:\n- Lo Margalló, Motoceballots, GinRiders, Lo Corral, La Ginesta, Lo Local\n- Associació de Dones, Lliga contra el Càncer\n- Cooperativa Agrícola, Sindicat, Molí Escoda, Molí Sunyer, Ferreria, Refugis Guerra Civil, Brixa Montserrada Bru (1615)",
+    "espais": "⛪ Patrimoni i espais culturals:\n- Església parroquial de Sant Martí\n- Ermita de Sant Isidre\n- Església Vella",
+    "kayaks": "🛶 Kayaks al riu Ebre: activitats d'aventura i rutes en kayak per Ginestar.",
     "parxis": "🏅 Ginestar va ser nomenada Capital Olímpica del Parxis durant els Jocs Olímpics de Barcelona 1992."
 }
 
 # ----------------------------
-# Funcions de resposta de comandes
+# Comandes
 # ----------------------------
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         "👋 Benvingut al Bot Turístic de Ginestar!\n\n"
-        "Pots provar aquestes opcions:\n"
-        "/info - Informació general del poble\n"
-        "/quevisitar - Llocs d’interès i patrimoni\n"
-        "/gastronomia - Menjar típic\n"
-        "/festes - Festes i tradicions\n"
-        "/horaris - Horaris d'autobús\n"
-        "/fira - Informació de la Fira Raure\n"
-        "/entitats - Entitats i associacions\n"
-        "/espais - Patrimoni i espais culturals\n"
-        "/kayaks - Activitats al riu Ebre\n"
-        "/parxis - Curiositats"
+        "Comandes disponibles:\n"
+        "/info /quevisitar /gastronomia /festes /horaris /fira /entitats /espais /kayaks /parxis\n\n"
+        "També pots fer preguntes lliures sobre el poble!"
     )
 
-async def info(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(
-        "📍 Ginestar és un municipi de la Ribera d’Ebre, conegut per les seves vinyes, "
-        "oliveres i paisatges de la vora del riu Ebre."
-    )
-
-async def que_visitar(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(
-        "🏞️ Llocs per visitar a Ginestar:\n"
-        "- Església parroquial de Sant Martí\n"
-        "- Ermita de Sant Isidre\n"
-        "- Església Vella\n"
-        "- Passeig pel riu Ebre\n"
-        "- Vinyes i oliveres\n"
-        "- Rutes de senderisme i ciclisme"
-    )
-
-async def gastronomia(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(
-        "🍇 Gastronomia de Ginestar:\n"
-        "- Vins de la Ribera d’Ebre\n"
-        "- Oli d’oliva extra verge\n"
-        "- Plats tradicionals com la clotxa"
-    )
-
-async def festes(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(
-        "🎉 Festes de Ginestar:\n"
-        "- Festa Major de Sant Martí (novembre)\n"
-        "- Festa del Pa amb Tomaca (27 de juliol)\n"
-        "- Diada de l'Ermita de Sant Isidre (segon diumenge de maig)"
-    )
-
-async def horaris(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(FAQS["autobus"])
-
-async def fira(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(FAQS["fira raure"])
-
-async def entitats(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(FAQS["entitats"])
-
-async def espais(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(FAQS["espais culturals"])
-
-async def kayaks(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(FAQS["kayaks"])
-
-async def parxis(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(FAQS["parxis"])
+async def send_faq(update: Update, context: ContextTypes.DEFAULT_TYPE, key: str):
+    await update.message.reply_text(FAQS[key])
 
 # ----------------------------
-# Funció intel·ligent per missatges lliures
+# Funció intel·ligent amb GPT
+# ----------------------------
+def chat_with_gpt(message: str) -> str:
+    try:
+        prompt = (
+            "Ets un guia turístic expert de Ginestar, Ribera d’Ebre. "
+            "Proporciona respostes concretes, clares i útils sobre festes, gastronomia, "
+            "activitats, patrimoni, entitats i horaris del poble.\n\n"
+            f"Pregunta: {message}\nResposta:"
+        )
+        response = openai.Completion.create(
+            engine="text-davinci-003",
+            prompt=prompt,
+            max_tokens=250,
+            temperature=0.7
+        )
+        return response.choices[0].text.strip()
+    except Exception as e:
+        return f"❌ Error en generar la resposta: {e}"
+
+# ----------------------------
+# Handler per missatges lliures
 # ----------------------------
 async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = update.message.text.lower()
+    # Primer revisem si hi ha coincidència amb keywords
     for keyword, answer in FAQS.items():
         if keyword in msg:
             await update.message.reply_text(answer)
             return
-    await update.message.reply_text(
-        "❓ No t’entenc. Prova alguna de les comandes: /info /quevisitar /gastronomia /festes /horaris /fira /entitats /espais /kayaks /parxis"
-    )
+    # Si no, enviem a GPT
+    reply = chat_with_gpt(update.message.text)
+    await update.message.reply_text(reply)
 
 # ----------------------------
-# Funció principal
+# Main
 # ----------------------------
 def main():
-    if not TELEGRAM_TOKEN:
-        raise ValueError("❌ Falta la variable d'entorn TELEGRAM_BOT_TOKEN")
-
     app = Application.builder().token(TELEGRAM_TOKEN).build()
 
-    # Handlers de comandes
+    # Comandes
     app.add_handler(CommandHandler("start", start))
-    app.add_handler(CommandHandler("info", info))
-    app.add_handler(CommandHandler("quevisitar", que_visitar))
-    app.add_handler(CommandHandler("gastronomia", gastronomia))
-    app.add_handler(CommandHandler("festes", festes))
-    app.add_handler(CommandHandler("horaris", horaris))
-    app.add_handler(CommandHandler("fira", fira))
-    app.add_handler(CommandHandler("entitats", entitats))
-    app.add_handler(CommandHandler("espais", espais))
-    app.add_handler(CommandHandler("kayaks", kayaks))
-    app.add_handler(CommandHandler("parxis", parxis))
+    app.add_handler(CommandHandler("info", lambda u,c: send_faq(u,c,"info")))
+    app.add_handler(CommandHandler("quevisitar", lambda u,c: send_faq(u,c,"quevisitar")))
+    app.add_handler(CommandHandler("gastronomia", lambda u,c: send_faq(u,c,"gastronomia")))
+    app.add_handler(CommandHandler("festes", lambda u,c: send_faq(u,c,"festes")))
+    app.add_handler(CommandHandler("horaris", lambda u,c: send_faq(u,c,"horaris")))
+    app.add_handler(CommandHandler("fira", lambda u,c: send_faq(u,c,"fira")))
+    app.add_handler(CommandHandler("entitats", lambda u,c: send_faq(u,c,"entitats")))
+    app.add_handler(CommandHandler("espais", lambda u,c: send_faq(u,c,"espais")))
+    app.add_handler(CommandHandler("kayaks", lambda u,c: send_faq(u,c,"kayaks")))
+    app.add_handler(CommandHandler("parxis", lambda u,c: send_faq(u,c,"parxis")))
 
-    # Handler per preguntes lliures
+    # Missatges lliures
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))
 
-    print("✅ Bot en marxa...")
+    print("✅ Bot en marxa amb GPT...")
     app.run_polling()
 
 if __name__ == "__main__":
