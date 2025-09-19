@@ -1,3 +1,2 @@
---force-reinstall
 openai==1.31.0
 python-telegram-bot==20.4
