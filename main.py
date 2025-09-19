@@ -79,4 +79,108 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "👋 Benvingut al Bot Turístic de Ginestar!\n\n"
         "Pots provar aquestes opcions:\n"
         "/info - Informació general del poble\n"
-        "/quevisitar - Llocs d’interès i patrimoni\n
+        "/quevisitar - Llocs d’interès i patrimoni\n"
+        "/gastronomia - Menjar típic\n"
+        "/festes - Festes i tradicions\n"
+        "/horaris - Horaris d'autobús\n"
+        "/fira - Informació de la Fira Raure\n"
+        "/entitats - Entitats i associacions\n"
+        "/espais - Patrimoni i espais culturals\n"
+        "/kayaks - Activitats al riu Ebre\n"
+        "/parxis - Curiositats"
+    )
+
+async def info(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(
+        "📍 Ginestar és un municipi de la Ribera d’Ebre, conegut per les seves vinyes, "
+        "oliveres i paisatges de la vora del riu Ebre."
+    )
+
+async def que_visitar(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(
+        "🏞️ Llocs per visitar a Ginestar:\n"
+        "- Església parroquial de Sant Martí\n"
+        "- Ermita de Sant Isidre\n"
+        "- Església Vella\n"
+        "- Passeig pel riu Ebre\n"
+        "- Vinyes i oliveres\n"
+        "- Rutes de senderisme i ciclisme"
+    )
+
+async def gastronomia(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(
+        "🍇 Gastronomia de Ginestar:\n"
+        "- Vins de la Ribera d’Ebre\n"
+        "- Oli d’oliva extra verge\n"
+        "- Plats tradicionals com la clotxa"
+    )
+
+async def festes(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(
+        "🎉 Festes de Ginestar:\n"
+        "- Festa Major de Sant Martí (novembre)\n"
+        "- Festa del Pa amb Tomaca (27 de juliol)\n"
+        "- Diada de l'Ermita de Sant Isidre (segon diumenge de maig)"
+    )
+
+async def horaris(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(FAQS["autobus"])
+
+async def fira(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(FAQS["fira raure"])
+
+async def entitats(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(FAQS["entitats"])
+
+async def espais(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(FAQS["espais culturals"])
+
+async def kayaks(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(FAQS["kayaks"])
+
+async def parxis(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(FAQS["parxis"])
+
+# ----------------------------
+# Funció intel·ligent per missatges lliures
+# ----------------------------
+async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    msg = update.message.text.lower()
+    for keyword, answer in FAQS.items():
+        if keyword in msg:
+            await update.message.reply_text(answer)
+            return
+    await update.message.reply_text(
+        "❓ No t’entenc. Prova alguna de les comandes: /info /quevisitar /gastronomia /festes /horaris /fira /entitats /espais /kayaks /parxis"
+    )
+
+# ----------------------------
+# Funció principal
+# ----------------------------
+def main():
+    if not TELEGRAM_TOKEN:
+        raise ValueError("❌ Falta la variable d'entorn TELEGRAM_BOT_TOKEN")
+
+    app = Application.builder().token(TELEGRAM_TOKEN).build()
+
+    # Handlers de comandes
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("info", info))
+    app.add_handler(CommandHandler("quevisitar", que_visitar))
+    app.add_handler(CommandHandler("gastronomia", gastronomia))
+    app.add_handler(CommandHandler("festes", festes))
+    app.add_handler(CommandHandler("horaris", horaris))
+    app.add_handler(CommandHandler("fira", fira))
+    app.add_handler(CommandHandler("entitats", entitats))
+    app.add_handler(CommandHandler("espais", espais))
+    app.add_handler(CommandHandler("kayaks", kayaks))
+    app.add_handler(CommandHandler("parxis", parxis))
+
+    # Handler per preguntes lliures
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))
+
+    print("✅ Bot en marxa...")
+    app.run_polling()
+
+if __name__ == "__main__":
+    main()
