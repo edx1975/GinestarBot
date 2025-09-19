@@ -1,33 +1,23 @@
 import os
 from telegram import Update
-from telegram.ext import Application, CommandHandler, MessageHandler, 
-ContextTypes, filters
+from telegram.ext import Application, CommandHandler, MessageHandler, ContextTypes, filters
 
 # ----------------------------
 # Variable d'entorn per al token del bot
 # ----------------------------
-TELEGRAM_TOKEN = os.getenv("7901264524:AAG2ekYzZYooZrsYmOH5gGYOOTgqz6fCZnw")
+TELEGRAM_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 
 # ----------------------------
 # Base de dades interna de preguntes i respostes
 # ----------------------------
 FAQS = {
-    "riviere": "El riu que passa per Ginestar és el riu Ebre.",
-    "restaurants": "A Ginestar pots trobar restaurants locals amb plats 
-típics com la clotxa i vins de la Ribera d'Ebre.",
-    "historia": "Ginestar té una rica història agrícola i cultural, amb 
-vinyes i oliveres centenàries.",
-    "hotels": "Ginestar és petit i no té grans hotels, però hi ha 
-allotjaments rurals i cases de turisme.",
-    "clima": "El clima és mediterrani continental, amb estius calorosos i 
-hiverns frescos.",
-    "autobus": "🚌 Horaris d'autobús a Ginestar:\n- Dilluns a divendres: 
-07:00, 09:00, 12:00, 17:00\n- Dissabtes: 09:00, 12:00, 17:00\n- Diumenges: 
-10:00, 15:00",
-    "fira raure": "✨ XVI Fira Raure de Ginestar\n📅 El pròxim diumenge 28 
-de setembre de 2025 celebrarem una nova edició de la nostra fira d’arts i 
-oficis, amb l’essència de sempre i moltes activitats per a tots els 
-públics."
+    "ribera": "El riu que passa per Ginestar és el riu Ebre.",
+    "restaurants": "A Ginestar pots trobar restaurants locals amb plats típics com la clotxa i vins de la Ribera d'Ebre.",
+    "historia": "Ginestar té una rica història agrícola i cultural, amb vinyes i oliveres centenàries.",
+    "hotels": "Ginestar és petit i no té grans hotels, però hi ha allotjaments rurals i cases de turisme.",
+    "clima": "El clima és mediterrani continental, amb estius calorosos i hiverns frescos.",
+    "autobus": "🚌 Horaris d'autobús a Ginestar:\n- Dilluns a divendres: 07:00, 09:00, 12:00, 17:00\n- Dissabtes: 09:00, 12:00, 17:00\n- Diumenges: 10:00, 15:00",
+    "fira raure": "✨ XVI Fira Raure de Ginestar\n📅 El pròxim diumenge 28 de setembre de 2025 celebrarem una nova edició de la nostra fira d’arts i oficis, amb l’essència de sempre i moltes activitats per a tots els públics."
 }
 
 # ----------------------------
@@ -48,8 +38,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def info(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
-        "📍 Ginestar és un municipi de la Ribera d’Ebre, conegut per les 
-seves vinyes, "
+        "📍 Ginestar és un municipi de la Ribera d’Ebre, conegut per les seves vinyes, "
         "oliveres i paisatges de la vora de l’Ebre."
     )
 
@@ -96,8 +85,7 @@ async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE):
             return
     # Si no troba res
     await update.message.reply_text(
-        "❓ No t’entenc. Prova alguna de les comandes: /info /quevisitar 
-/gastronomia /festes /horaris /fira"
+        "❓ No t’entenc. Prova alguna de les comandes: /info /quevisitar /gastronomia /festes /horaris /fira"
     )
 
 # ----------------------------
@@ -105,8 +93,7 @@ async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # ----------------------------
 def main():
     if not TELEGRAM_TOKEN:
-        raise ValueError("❌ Falta la variable d'entorn 
-TELEGRAM_BOT_TOKEN")
+        raise ValueError("❌ Falta la variable d'entorn TELEGRAM_BOT_TOKEN")
 
     app = Application.builder().token(TELEGRAM_TOKEN).build()
 
@@ -128,4 +115,3 @@ TELEGRAM_BOT_TOKEN")
 
 if __name__ == "__main__":
     main()
-
