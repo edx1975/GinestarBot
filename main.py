@@ -5,7 +5,7 @@ from telegram.ext import Application, CommandHandler, MessageHandler, ContextTyp
 # ----------------------------
 # Variable d'entorn per al token del bot
 # ----------------------------
-TELEGRAM_TOKEN = os.getenv("7901264524:AAG2ekYzZYooZrsYmOH5gGYOOTgqz6fCZnw")
+TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 
 # ----------------------------
 # Base de dades interna de preguntes i respostes
