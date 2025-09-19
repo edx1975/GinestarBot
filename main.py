@@ -10,7 +10,7 @@ TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 if not TELEGRAM_TOKEN:
-    print("⚠️ Falta la variable d'entorn TELEGRAM_TOKEN")
+    print("⚠️ Falta la variable d'entorn TELEGRAM_BOT_TOKEN")
     exit(0)
 
 if not OPENAI_API_KEY:
