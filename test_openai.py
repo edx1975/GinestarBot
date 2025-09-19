@@ -27,8 +27,7 @@ try:
         model="gpt-3.5-turbo",
         messages=[
             {"role": "system", "content": "Ets un assistent de prova."},
-            {"role": "user", "content": "Hola! Dona'm un missatge curt de 
-prova."}
+            {"role": "user", "content": "Hola! Dona'm un missatge curt de prova."}
         ],
         max_tokens=50,
         temperature=0.7
