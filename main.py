@@ -6,15 +6,15 @@ from telegram.ext import Application, CommandHandler, MessageHandler, ContextTyp
 # ----------------------------
 # Variables d'entorn
 # ----------------------------
-TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
+TELEGRAM_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 if not TELEGRAM_TOKEN:
-    print("⚠️ AVÍS: Falta la variable d'entorn TELEGRAM_BOT_TOKEN")
+    print("⚠️ Falta la variable d'entorn TELEGRAM_BOT_TOKEN")
     exit(0)
 
 if not OPENAI_API_KEY:
-    print("⚠️ AVÍS: Falta la variable d'entorn OPENAI_API_KEY")
+    print("⚠️ Falta la variable d'entorn OPENAI_API_KEY")
     exit(0)
 
 openai.api_key = OPENAI_API_KEY
@@ -50,23 +50,20 @@ async def send_faq(update: Update, context: ContextTypes.DEFAULT_TYPE, key: str)
     await update.message.reply_text(FAQS[key])
 
 # ----------------------------
-# Funció intel·ligent amb GPT
+# Funció intel·ligent amb GPT (ChatCompletion)
 # ----------------------------
 def chat_with_gpt(message: str) -> str:
     try:
-        prompt = (
-            "Ets un guia turístic expert de Ginestar, Ribera d’Ebre. "
-            "Proporciona respostes concretes, clares i útils sobre festes, gastronomia, "
-            "activitats, patrimoni, entitats i horaris del poble.\n\n"
-            f"Pregunta: {message}\nResposta:"
-        )
-        response = openai.Completion.create(
-            engine="text-davinci-003",
-            prompt=prompt,
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "Ets un guia turístic expert de Ginestar, Ribera d’Ebre. Dona respostes concretes, clares i útils sobre festes, gastronomia, activitats, patrimoni, entitats i horaris."},
+                {"role": "user", "content": message}
+            ],
             max_tokens=250,
             temperature=0.7
         )
-        return response.choices[0].text.strip()
+        return response['choices'][0]['message']['content'].strip()
     except Exception as e:
         return f"❌ Error en generar la resposta: {e}"
 
@@ -106,7 +103,7 @@ def main():
     # Missatges lliures
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))
 
-    print("✅ Bot en marxa amb GPT...")
+    print("✅ Bot en marxa amb GPT (ChatCompletion)...")
     app.run_polling()
 
 if __name__ == "__main__":
